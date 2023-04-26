@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Canvas Drawing</title>
+</head>
+<body>
+    <canvas id="myCanvas" width="1500" height="1500"></canvas>
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const context = canvas.getContext('2d');
+        const record = [];
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        canvas.addEventListener('mousedown', (event) => {
+            isDrawing = true;
+            [lastX, lastY] = [event.offsetX, event.offsetY];
+            record.push({ type: 'mousedown', x: lastX, y: lastY });
+        });
+
+        canvas.addEventListener('mousemove', (event) => {
+            if (!isDrawing) return;
+            const currentX = event.offsetX;
+            const currentY = event.offsetY;
+            context.beginPath();
+            context.moveTo(lastX, lastY);
+            context.lineTo(currentX, currentY);
+            context.lineWidth = 1;
+            context.stroke();
+            [lastX, lastY] = [currentX, currentY];
+            record.push({ type: 'mousemove', x: currentX, y: currentY });
+            drawRandomLines(currentX, currentY);
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+            record.push({ type: 'mouseup' });
+        });
+
+        function drawRandomLines(x, y) {
+            const radius = 30;
+            const validPoints = [];
+            for (let i = 0; i < record.length; i++) {
+                const point = record[i];
+                if (point.type === 'mousemove' && distance(point.x, point.y, x, y) < radius) {
+                    validPoints.push(point);
+                }
+            }
+            if (validPoints.length > 0) {
+                for (let i = 0; i < 20; i++) {
+                    const randomPoint = validPoints[Math.floor(Math.random() * validPoints.length)];
+                    const randomX = randomPoint.x;
+                    const randomY = randomPoint.y;
+                    context.beginPath();
+                    context.moveTo(x, y);
+                    context.lineTo(randomX, randomY);
+                    context.lineWidth = 1;
+                    context.stroke();
+                }
+            }
+        }
+
+        function distance(x1, y1, x2, y2) {
+            const xDistance = x2 - x1;
+            const yDistance = y2 - y1;
+            return Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
+        }
+    </script>
+</body>
+</html>

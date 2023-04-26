@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Random Line Brush</title>
+	<meta charset="UTF-8">
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+		}
+
+		canvas {
+			background-color: white;
+			cursor: crosshair;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvas" width="1500" height="1500"></canvas>
+
+	<script>
+		const canvas = document.getElementById('canvas');
+		const ctx = canvas.getContext('2d');
+		const lines = []; // 用于存储所有绘制的线条
+		let isDrawing = false; // 用于判断是否正在绘制
+		let startPoint = {x: 0, y: 0}; // 记录绘制起始点
+		let endPoint = {x: 0, y: 0}; // 记录绘制结束点
+
+		canvas.addEventListener('mousedown', startDrawing);
+		canvas.addEventListener('mouseup', endDrawing);
+		canvas.addEventListener('mousemove', drawLine);
+
+		function startDrawing(e) {
+			isDrawing = true;
+			startPoint = {x: e.clientX, y: e.clientY};
+			ctx.beginPath();
+			ctx.moveTo(startPoint.x, startPoint.y);
+		}
+
+		function endDrawing(e) {
+			isDrawing = false;
+			endPoint = {x: e.clientX, y: e.clientY};
+			ctx.lineTo(endPoint.x, endPoint.y);
+			ctx.stroke();
+
+			// 记录绘制信息
+			lines.push({
+				start: startPoint,
+				end: endPoint
+			});
+		}
+
+		function drawLine(e) {
+			if (!isDrawing) return;
+
+			const x = e.clientX;
+			const y = e.clientY;
+
+			// 绘制基本线条
+			ctx.lineTo(x, y);
+			ctx.stroke();
+			
+			// 随机连线
+			const nearbyLines = lines.filter(line => {
+				const d = distanceBetweenPoints(line, {x, y});
+				return d <= 100;
+			});
+
+			const selectedPoints = [];
+			nearbyLines.forEach(line => {
+				selectedPoints.push(line.start);
+				selectedPoints.push(line.end);
+			});
+
+			if (selectedPoints.length > 0) {
+				for (let i = 0; i < 20; i++) {
+					const randomIndex = Math.floor(Math.random() * selectedPoints.length);
+					const randomPoint = selectedPoints[randomIndex];
+					ctx.beginPath();
+					ctx.moveTo(x, y);
+					ctx.lineTo(randomPoint.x, randomPoint.y);
+					ctx.lineWidth = 1;
+					ctx.stroke();
+				}
+			}
+
+			startPoint = {x, y};
+		}
+
+		function distanceBetweenPoints(a, b) {
+			const dx = a.start.x - b.x;
+			const dy = a.start.y - b.y;
+			return Math.sqrt(dx * dx + dy * dy);
+		}
+	</script>
+</body>
+</html>

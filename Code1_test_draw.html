@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Line Brush with Random Lines Based on Previous Line</title>
+</head>
+<body>
+	<canvas id="canvas" width="1200" height="1500"></canvas>
+	<script>
+		// 获取画布和画笔
+		var canvas = document.getElementById("canvas");
+		var ctx = canvas.getContext("2d");
+
+		// 设置笔刷属性
+		var brushSize = 1;
+		var brushColor = "#000000";
+
+		// 设置随机线属性
+		var randomLineLength = 1;
+        var randomLineSize = 10;
+		var randomLineColor = "#000000";
+
+		// 保存上一次绘制的结束点
+		var lastEnd = null;
+
+		// 监听鼠标事件
+		canvas.addEventListener("mousedown", startDraw);
+		canvas.addEventListener("mousemove", draw);
+		canvas.addEventListener("mouseup", endDraw);
+
+		// 开始绘制
+		function startDraw(e) {
+			ctx.beginPath();
+			ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+			lastEnd = { x: e.clientX - canvas.offsetLeft, y: e.clientY - canvas.offsetTop };
+			canvas.addEventListener("mousemove", draw);
+		}
+
+		// 绘制
+		function draw(e) {
+			ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+			ctx.lineWidth = brushSize;
+			ctx.strokeStyle = brushColor;
+			ctx.lineCap = "round";
+			ctx.lineJoin = "round";
+			ctx.stroke();
+
+			// 在划过的线附近一定范围内添加随机的连线
+			if (lastEnd) {
+				var randX = lastEnd.x + Math.random() * randomLineSize - randomLineSize/2;
+				var randY = lastEnd.y + Math.random() * randomLineSize - randomLineSize/2;
+				ctx.beginPath();
+				ctx.moveTo(lastEnd.x, lastEnd.y);
+				ctx.lineTo(randX, randY);
+				ctx.lineWidth = brushSize/2;
+				ctx.strokeStyle = randomLineColor;
+				ctx.stroke();
+			}
+
+			lastEnd = { x: e.clientX - canvas.offsetLeft, y: e.clientY - canvas.offsetTop };
+		}
+
+		// 结束绘制
+		function endDraw() {
+			canvas.removeEventListener("mousemove", draw);
+			lastEnd = null;
+		}
+	</script>
+</body>
+</html>

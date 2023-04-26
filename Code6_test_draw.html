@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>ScribblerToo</title>
+    <style>
+      #canvas {
+        border: 1px solid #000;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas" width="1500" height="1500"></canvas>
+    <script>
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // 存储所有绘制信息
+      let drawData = [];
+
+      // 获取两点间距离
+      function getDistance(point1, point2) {
+        const dx = point1.x - point2.x;
+        const dy = point1.y - point2.y;
+        return Math.sqrt(dx * dx + dy * dy);
+      }
+
+      // 获取鼠标/触控点坐标
+      function getMousePos(canvas, evt) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: evt.clientX - rect.left,
+          y: evt.clientY - rect.top
+        };
+      }
+
+      let isDrawing = false;
+      let lastPos = { x: 0, y: 0 };
+      let currPos = { x: 0, y: 0 };
+      let currPath = [];
+
+      canvas.addEventListener('mousedown', (evt) => {
+        isDrawing = true;
+        lastPos = getMousePos(canvas, evt);
+        currPos = lastPos;
+        currPath.push(currPos);
+      });
+
+      canvas.addEventListener('mousemove', (evt) => {
+        if (!isDrawing) {
+          return;
+        }
+        currPos = getMousePos(canvas, evt);
+        ctx.beginPath();
+        ctx.moveTo(lastPos.x, lastPos.y);
+        ctx.lineTo(currPos.x, currPos.y);
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        lastPos = currPos;
+
+        // 寻找最近的20个点并连接
+        const radius = 10;
+        for (let i = drawData.length - 1; i >= 0; i--) {
+          const path = drawData[i];
+          for (let j = 0; j < path.length; j++) {
+            const point = path[j];
+            const distance = getDistance(currPos, point);
+            if (distance <= radius) {
+              const randomIndex = Math.floor(Math.random() * 20);
+              const randomPoint = path[(j + randomIndex) % path.length];
+              ctx.beginPath();
+              ctx.moveTo(currPos.x, currPos.y);
+              ctx.lineTo(randomPoint.x, randomPoint.y);
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
+          }
+        }
+
+        currPath.push(currPos);
+      });
+
+      canvas.addEventListener('mouseup', () => {
+        if (!isDrawing) {
+          return;
+        }
+        isDrawing = false;
+        drawData.push(currPath);
+        currPath = [];
+      });
+
+    </script>
+  </body>
+</html>
